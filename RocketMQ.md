@@ -46,3 +46,31 @@
 * namesrvAddr = 127.0.0.1
 * brokerIP1 = 72.127.2.8
 * 启动broker执行 `nohup sh mqbroker -n localhost:9876 -c ../conf/broker.conf autoCreateTopicEnable=true & ` 
+
+> broker.conf配置说明
+* `brokerId` 0 表示Master，>0表示 Slave
+* `defaultTopicQueueNums` 在发送消息时,自动创建不存在的topic,默认创建的队列数
+* `autoCreateTopicEnable` 是否允许Broker自动创建topic,建议线下开启 线上关闭
+* `autoCreateSubscriptionGroup` 是否允许Broker自动创建订阅组,建议线下开启 线上关闭
+* `listenPort` Broker对外服务监听端口
+* `deleteWhen` 删除文件时间 默认凌晨4点
+* `fileReservedTime` 文件保留时间,默认72小时 单位小时
+* `mapedFileSizeCommitLog` commitLog每个文件的大小默认1G 单位kb
+* `mapedFileSizeConsumeQueue` ConsumeQueue每个文件默认存30W条，根据业务情况调整
+* `diskMaxUsedSpaceRatio` 检测物理文件磁盘空间
+* `storePathRootDir` 存储路径
+* `storePathCommitLog` commitLog 存储路径
+* `storePathConsumeQueue` 消费队列存储路径存储路径
+* `storePathIndex` 消息索引存储路径
+* `storeCheckpoint` checkpoint 文件存储路径
+* `abortFile` abort 文件存储路径
+* `maxMessageSize` 限制的消息大小 默认4M 单位kb
+* `brokerRole` Broker的角色
+   * ASYNC_MASTER 异步复制Master
+   * SYNC_MASTER 同步双写Master
+   * SLAVE
+* `flushDiskType` 刷盘方式
+   * ASYNC_FLUSH 异步刷盘
+   * SYNC_FLUSH 同步刷盘
+
+
