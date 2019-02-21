@@ -11,3 +11,5 @@
 * 方法二 `git push origin --delete new_branch`
 > 查看分支状态 
 * `git status`
+> 提交代码
+* `git add 文件名`
