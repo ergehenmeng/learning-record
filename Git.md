@@ -8,4 +8,5 @@
    * 方法一 `git push origin  :new_branch` (推送一个空分支到远程分支)
    * 方法二 `git push origin --delete new_branch`
 * `git status`查看分支状态 
-* `git add 文件名` 提交代码
+* `git add 文件名(支持多个文件)` 提交代码
+* `git commit -m "注释信息" ` 本地代码提交
