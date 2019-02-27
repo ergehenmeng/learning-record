@@ -36,7 +36,7 @@
 * docker build -t <镜像名><Dockerfile路径> 创建镜像,需编写脚本
 * docker imamges 查看所有的镜像
 * docker rmi <镜像名> 删除镜像
-* docker run -name 容器名 -d -p 内部端口号:外部端口号 镜像名<.版本号>  
+* docker run -name 容器名 -d -p 内部端口号:外部端口号 镜像名<.版本号>
   * -a 指定标准输入内容类型
   * -d 后台运行容器并返回id
   * -i 以交互模式运行容器
