@@ -1,4 +1,16 @@
+
+#### MybatisAutoConfiguration创建了如下Bean
+* `SqlSessionFactory`
+* `SqlSessionTemplate`
+* ``
+
+
+
 * **入参枚举说明**
+
+* `ConfigurationCustomizer` 自定义mybatis配置,在mybatis自动配置时,会被注入
+
+
 
 ``` 
 EnumOrdinalTypeHandler 

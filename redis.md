@@ -9,6 +9,7 @@
 > * yum install make
 > * yum install vim
 > * make MALLOC=libc
+> * make PREFIX=/usr/local/redis install 编译到指定目录下
 > * cp redis-server,redis-benchmark,redis-cli,redis.conf到指定目录
 > * cp utils/redis_init_script /etc/init.d/redis 增加 # chkconfig 2345 80 90
 > * chkconfig redis on 开机启动

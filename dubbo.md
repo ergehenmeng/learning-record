@@ -10,7 +10,7 @@ GenericService.$invoke("method",new String[]{paramType},new Object[]{})
 GenericServiceImpl.$invke(String method){ if(method.equals("say")){...} }
 ```
 
->服务端 Protocol injvm导出
+> 服务端 Protocol injvm导出
 
 QosProtocolWrapper(统计拦截次数)-ProtocolListenerWrapper(导出监听器)--ProtocolFilterWrapper(包装拦截器)---InjvmProtocol(本地协议导出)
 

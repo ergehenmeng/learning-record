@@ -34,7 +34,7 @@
 * docker search <镜像名称.版本号>  从镜像服务器中查找镜像
 * docker pull <镜像名: tag> 拉取镜像
 * docker build -t <镜像名><Dockerfile路径> 创建镜像,需编写脚本
-* docker imamges 查看所有的镜像
+* docker images 查看所有的镜像
 * docker rmi <镜像名> 删除镜像
 * docker run -name 容器名 -d -p 内部端口号:外部端口号 镜像名<.版本号>
   * -a 指定标准输入内容类型
@@ -55,3 +55,16 @@
 * docker stop <容器名或ID> 停止一个容器
 * docker kill <容器名或id> 杀死一个容器
 * docker start <容器名或id> 启动一个容器
+* `docker pull registry.docker-cn.com/library/redis` 国内镜像加速
+### docker安装
+
+* 必须内核版本高于3.10 `uname -r` 查看
+* `yum update` 将yum包更新到最新
+* `yum remove docker docker-common docker-selinux docker-engine` 卸载docker旧版本
+* `yum install -y yum-utils device-mapper-persistent-data lvm2` 安装yum依赖的软件包
+* `yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo` 设置docker的yum源
+* `yum list docker-ce --showduplicates | sort -r ` 查看仓库中所有的docker版本
+* `yum install docker-ce` 安装最新的docker稳定版
+* `yum install docker-ce-17.12.0.ce ` 安装指定的docker版本
+* `systemctl start docker` `systemctl enable docker` 开机启动docker服务
+

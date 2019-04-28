@@ -97,7 +97,8 @@
 * 
 * **jhat** JVM Heap Dump Browser 用于分析heapdump文件,它会建立一个Http服务器,让用户在浏览器上查看分析结果
 * **jstack** Stack Trace for Java 显示虚拟机的线程快照
-* jmap -dump:format=b,file=文件名 [pid] 导出dump文件
+* jmap -dump:format=b,file=*.dump [pid] 导出dump文件
+* jmap -dump:format=b,file=*.hprof [pid]
 * ps -p pid -o etime 查看JVM运行的总时间
 
 
