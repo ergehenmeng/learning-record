@@ -132,3 +132,12 @@ select VARIABLE_VALUE into @b from performance_schema.session_status where varia
 ```
 计算 Innodb_rows_read 差值select @b-@a;
 ``` 
+
+##复合索引最左索引
+* 复合索引 index(a,b)
+* select * from user  where a=? and b= ? 使用索引
+* select * from user where a=? 使用索引
+* select * from user where b = ? 不使用索引
+
+##离线安装 
+* mysqld --defaults-file=C:\windows\my.ini mysql

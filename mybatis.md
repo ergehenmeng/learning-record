@@ -1,20 +1,69 @@
 
-#### MybatisAutoConfiguration创建了如下Bean
-* `SqlSessionFactory`
-* `SqlSessionTemplate`
-* ``
+* `ConfigurationCustomizer` 自定义mybatis配置信息
+* `SqlSourceBuilder` 创建#{}解析对象,内部通过`GenericTokenParser`解析,并将解析后的信息保存为`ParameterMapping`对象
+* `GenericTokenParser` 解析SQL中#{}
+* `ParameterMapping` sql中占位符描述类#{}
+* `MappedTypes`接口上注解`@MappedTypes`用来表示该类处理哪些java类型,如果接口上注解`@MappedJdbcTypes` 用来表示该类处理哪些数据库类型
+* `MapperProxyFactory` Mapper接口方法描述对象,每个Mapper接口都会生成一个该对象,并交由Configuration#mapperRegistry#knownMappers成员变量来维护
+* `SqlSessionTemplate` 基于SqlSession的模板类,内部采用动态代理方式对原始SqlSession进行拦截,具体代理类`SqlSessionInterceptor`
+* `SqlSessionInterceptor` 再次创建代理对象SqlSession,如果该SqlSession代理对象由Spring管理则,则释放事务,如果不是由spring管理的则提交事务并关闭连接
+* `TypeHandlerRegistry` 用于保存TypeHandler对象
+```java
 
-
-
-* **入参枚举说明**
-
-* `ConfigurationCustomizer` 自定义mybatis配置,在mybatis自动配置时,会被注入
-
+private class SqlSessionInterceptor implements InvocationHandler {
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        //调用方法前会真正创建SqlSession对象,SqlSession对象由sqlSessionFactory的默认实现类DefaultSqlSessionFactory实现
+      SqlSession sqlSession = getSqlSession(
+          SqlSessionTemplate.this.sqlSessionFactory,
+          SqlSessionTemplate.this.executorType,
+          SqlSessionTemplate.this.exceptionTranslator);
+      try {
+        Object result = method.invoke(sqlSession, args);
+        if (!isSqlSessionTransactional(sqlSession, SqlSessionTemplate.this.sqlSessionFactory)) {
+          // force commit even on non-dirty sessions because some databases require
+          // a commit/rollback before calling close()
+          sqlSession.commit(true);
+        }
+        return result;
+      } catch (Throwable t) {
+        Throwable unwrapped = unwrapThrowable(t);
+        if (SqlSessionTemplate.this.exceptionTranslator != null && unwrapped instanceof PersistenceException) {
+          // release the connection to avoid a deadlock if the translator is no loaded. See issue #22
+          closeSqlSession(sqlSession, SqlSessionTemplate.this.sqlSessionFactory);
+          sqlSession = null;
+          Throwable translated = SqlSessionTemplate.this.exceptionTranslator.translateExceptionIfPossible((PersistenceException) unwrapped);
+          if (translated != null) {
+            unwrapped = translated;
+          }
+        }
+        throw unwrapped;
+      } finally {
+        if (sqlSession != null) {
+          closeSqlSession(sqlSession, SqlSessionTemplate.this.sqlSessionFactory);
+        }
+      }
+    }
+  }
 
 
 ``` 
-EnumOrdinalTypeHandler 
-```
+* `MapperFactoryBean` 创建基于Mapper接口的工厂Bean,内部通过SqlSessionTemplate.getMapper(Class<T> cls)获取真正的Mapper,而getMapper方法内部通过动态代理生成接口的实现类
+* `MapperProxy` 该类实现InvocationHandler接口,用于拦截Mapper代理类的所有方法
+* `MappedStatement` 用于保存sql相关所有属性,该类通过Mapper.methodName作为key,保存到Configuration中的mappedStatements里面
+* `MapperMethod` 在`MapperProxy#invoke`中创建,每个方法均包含一个`MapperMethod`并缓存到`MapperProxy`中,主要保存方法的调用类型(`SqlCommand`)入参,出参,分页(`MethodSignature`)等信息及真实调用逻辑.同时确认方式是insert,update,delete,select等类型
+
+* `ConnectionLogger` 创建Connection打印日志,当调用prepareStatement方法时,会打印sql日志,同时创建`PreparedStatementLogger`对象,当调用createStatement方法时,会创建`StatementLogger`对象
+* `PreparedStatementLogger` 执行PreparedStatement打印入参或者执行日志(动态代理)
+* `StatementLogger` 创建Statement打印SQL日志(动态代理)
+* `ResultSetLogger` 结果集日志打印(动态代理)
+* `SpringManagedTransaction` spring事务管理器(针对mybatis)
+* `SimpleExecutor` SQL执行器,执行增删改查
+* `DefaultParameterHandler` setParameter(index,value)
+* `SelectKeyGenerator` selectKey标签 内部直接执行一次查询并通过MetaObject反射设置id
+* `PreparedStatementHandler` 用来执行PreparedStatement增删改查并返回结果集
+* `DefaultResultSetHandler` 将ResultSet转换为相应的集合或类
+
 
 ```
 EnumTypeHandler
@@ -90,3 +139,4 @@ EnumTypeHandler
 * `type` 指定自定义缓存的全类名(实现Cache接口即可)
 * `flushCache` 是否刷新缓存 一般用在insert,delete,update
 * `useCache` 是否开启缓存 一般用在select
+

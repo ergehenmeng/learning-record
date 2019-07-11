@@ -81,8 +81,7 @@
 	* P 永久代(Permanent) 
 	* YGC 程序启动后发生的Minor GC次数 
 	* YGCT Minor GC总耗时时间 
-	* FGC 程序启动后总
-	*  GC次数 
+	* FGC 程序启动后总 GC次数 
 	* FGCT Full GC总耗时时间 
 	* GCT 所有GC总耗时时间
 	* MC  Metaspace Capacity 
@@ -111,3 +110,8 @@
    * 字段的名称与描述符
    * 方法的名称与描述符
 
+在Java语言中，可作为GC Roots的对象包括下面几种：
+a) 虚拟机栈中引用的对象（栈帧中的本地变量表）；
+b) 方法区中类静态属性引用的对象；
+c) 方法区中常量引用的对象；
+d) 本地方法栈中JNI（Native方法）引用的对象;
