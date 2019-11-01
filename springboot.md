@@ -35,3 +35,36 @@
 * `ProxyCallbackFilter` 用来确定方法调用时应该采用上述那个增强拦截器进行操作
 * `DynamicAdvisedInterceptor` 包装拦截器 将方法调用包装成`CglibMethodInvocation` 并调用其proceed()方法
 * `CglibMethodInvocation`的父类`ReflectiveMethodInvocation`包含调用链`Advisor`,并且在proceed()方法中进行链式递归调用
+
+
+###SpringMVC
+* `ServletContextInitializerBeans` 用于添加Filter,Listener,Servlet
+* `AnnotationConfigServletWebServerApplicationContext` 初始化过程
+    * 反射创建自身对象
+    * 设置上下文环境(setEnvironment)
+    * 调用`ApplicationContextInitializer`接口的initialize方法
+        * `DelegatingApplicationContextInitializer`
+	* `ContextIdApplicationContextInitializer`
+	* `RestartScopeInitializer`
+	* `ConfigurationWarningsApplicationContextInitializer`
+	* `ServerPortInfoApplicationContextInitializer`
+	* `SharedMetadataReaderFactoryContextInitializer`
+	* `ConditionEvaluationReportLoggingListener`
+    * `ApplicationEvent`相关事件在整个流程中的触发
+    * 加载source bean
+    * `ApplicationContext#refresh`
+    * 调用`ApplicationRunner`及`CommandLineRunner`接口方法
+
+###Bean创建过程
+> `InstantiationAwareBeanPostProcessor#postProcessBeforeInstantiation` 返回值不为空表示由用户自己创建指定Bean对象,后续执行`BeanPostProcessor#postProcessAfterInitialization`即完成整个Bean创建 如果为空则继续后面的逻辑
+> `SmartInstantiationAwareBeanPostProcessor#determineCandidateConstructors` 创建Bean对象构造方法,不为空则创建BeanWrapper对象
+>  实例化`BeanWrapper`对象,内部包含Bean对象
+> `MergedBeanDefinitionPostProcessor#postProcessMergedBeanDefinition` 对bean定义信息进行合并并处理
+> `InstantiationAwareBeanPostProcessor#postProcessAfterInstantiation` 对象实例化后置处理
+> `InstantiationAwareBeanPostProcessor#postProcessPropertyValues` 属性值处理
+>  Bean对象属性值设置
+> `BeanPostProcessor#postProcessBeforeInitialization` 初始化前置处理
+> `InitializingBean#afterPropertiesSet`
+>  Bean的init方法
+> `BeanPostProcessor#postProcessAfterInitialization`
+> `SmartInstantiationAwareBeanPostProcessor#getEarlyBeanReference`
