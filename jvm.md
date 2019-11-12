@@ -1,4 +1,5 @@
-####### java虚拟机运行时数据区说明
+####java虚拟机运行时数据区说明
+
 ![](https://i.imgur.com/MRZD9Sb.png)
 
 * **程序计数器** 一块很小的内存区域,当前线程所执行的字节码的行号指示器,如果执行的是native方法这个计数器是undefined,此内存区域是java虚拟机规范中没有任何OutOfMemoryError情况的区域
@@ -47,14 +48,17 @@
 * **-XX:+PrintInlining** 输出方法内联信息 貌似需要开启 **-XX:+UnlockDiagnosticVMOptions** 参数才行
 * **XX:CMSWaitDuration=2000** JVM中一个线程定时扫描old区,扫描间隔时间2s
 * **XX:CMSInitiatingOccupancyFraction=75** (老年代使用率阀值)如果发现old区占比超过75%(CMS下默认是68%)会触发cms gc
-#####堆详解
+####堆详解
+
 * **Minor GC** 新生代GC 比较频繁
 * **Major GC(Full GC) 老年代GC 出现Major GC时至少进行一次Minor GC(非绝对 Parallel Scavenge收集器会忽略),一般Major GC比Minor GC满10倍以上
 * 在绝大多数情况下对象会在新生代Eden区中分配,当Eden区没有足够的空间进行分配时,虚拟机将发起一次Minor GC
 * 虚拟机给每个对象定义了一个"age"计数器,如果对象生成在Eden区,经过Minor GC后扔存活,并且Survivor区能够容纳下,将会被移入Survivor区并且年龄加1,每经过一次Minor GC 年龄都会增加一岁,当增加到一定年龄后会被移入老年代(默认阀值是15,可通过设置**-XX:MaxTenuringThreshold=18**设置阀值)
 * **PerNew** 收集器采用的是复制算法,该算法建立在绝大部分对象都是朝闻夕死的特性上,如果对象过多把这些对象复制到Survivor上 GC时间会比较长,而且一般空间比例Eden:Survivor为8:1
-###### JDK监控与故障处理工具
+####JDK监控与故障处理工具
+
 * **jps**  JVM Process Status 显示系统内所有的HotSpot虚拟机进程,参数说明:
+
   1. **-q** 只输出LVMID(进程的本地虚拟机唯一ID:Local Virtual Machine Identifier)省略主类的名称
   2. **-m** 输出虚拟机进程启动过时传递给主类main()函数的参数 
   3. **-l** 输出主类的全名,如果是jar的输出jar路径
@@ -88,10 +92,9 @@
 	* MU  Metaspace Used
   
 * **jinfo** Configuration Info for Java 显示虚拟机配置信息 jinfo [option] pid
-	
-	* ** 查询虚拟机参数 jinfo -flag CMSInitiatingOccupancyFranction 144
-	
-	
+
+  * ** 查询虚拟机参数 jinfo -flag CMSInitiatingOccupancyFranction 144
+
 * **jmap** Memory Map for Java生成虚拟机内存转储快照(heapdump文件)
 * 
 * **jhat** JVM Heap Dump Browser 用于分析heapdump文件,它会建立一个Http服务器,让用户在浏览器上查看分析结果
@@ -100,8 +103,8 @@
 * jmap -dump:format=b,file=*.hprof [pid]
 * ps -p pid -o etime 查看JVM运行的总时间
 
+####java类文件属性
 
-###java类文件属性
 * 头四个字节代表class属性文件,(十六进制0xCAFEBABE)称为魔数,用来辨别文件的类型(因为扩展名可以更改不准确)
 * 5-6字节代表次版本号
 * 7-8字节代表主版本号
@@ -115,3 +118,137 @@ a) 虚拟机栈中引用的对象（栈帧中的本地变量表）；
 b) 方法区中类静态属性引用的对象；
 c) 方法区中常量引用的对象；
 d) 本地方法栈中JNI（Native方法）引用的对象;
+
+
+
+#### 极客时间JVM笔记
+
+##### 	第一章
+
+  * 虚方法 
+
+    子类重写父类的方法会被`Override`标示,当子类重写的方法被调用时JVM使用`invokevirtual`字节码指令来调用方法,简单来说所有可以被重写的方法都是虚方法.(`static`、`final`、`private`)除外
+
+* 虚拟机运行字节码方式
+
+  1. **解释执行**.条将字节码翻译成机器码并执行
+
+  2. **即时编译**(Just-In-Time compilation)JIT.将一个方法中包含的所有字节码编译成机器码后再执行
+
+* 编译器种类
+
+  1. **C1**.又称为Client编译器,优化手段简单,编译时间短,效率一般
+
+  2. **C2**.又称为Server编译器,优化手段复杂,编译时间长,代码执行效率高
+
+  3. **Graal**.java10引入的实验性即时编译器
+
+##### 第三章
+
+* 加载器
+  1. 启动类加载器.负责加载**Jre/lib**下的jar包中类及-Xbootclasspath指定的类
+  2. 扩展类加载器.父加载器为启动类加载器.负责加载相对次要却又通用的类,`jre/lib/ext`目录下的jar包中的类及系统变量`java.ext.dirs`指定的类
+  3. 应用类加载器.父类加载器为扩展类加载器,负责加载应用程序路径下的类 `-cp/ -classpath`  系统变量`java.class.path` 环境变量`CLASS_PATH`
+* 类初始化触发条件
+  1. 当虚拟机启动时，初始化用户指定的主类
+  2. 当遇到用以新建目标类实例的 new 指令时，初始化 new 指令的目标类
+  3. 当遇到调用静态方法的指令时，初始化该静态方法所在的类
+  4. 当遇到访问静态字段的指令时，初始化该静态字段所在的类
+  5. 子类的初始化会触发父类的初始化
+  6. 如果一个接口定义了 default 方法，那么直接实现或者间接实现该接口的类的初始化，会触发该接口的初始化
+  7. 使用反射 API 对某个类进行反射调用时，初始化这个类
+  8. 当初次调用 MethodHandle 实例时，初始化该 MethodHandle 指向的方法所在的类
+
+##### 第四章
+
+  * 字节码调用指令
+        		1. **invokestatic** 调用静态方法
+        		2. **invokespecial** 调用私有方法,构造方法,super方法或者构造方法,所有实现接口的默认方法
+        		3. **invokevirtual** 调用非私有方法
+        		4. **invokeinterface** 调用接口方法
+        		5. **invokedynamic** 调用动态方法(主要是重写的方法)
+* **动态绑定** 虚拟机根据调用者的动态类型,来确定虚方法调用的目标方法称为动态绑定.**invokedynamic**指令
+* **静态绑定** 调用静态方法的**invokestatic**指令,用于构造方法,私有方法及超类私有方法调用的**invokespecial**指令,标示了**final**的虚方法
+
+##### 字节码指令集
+
+* 操作数栈(operand stack),用于运算
+* 本地变量表(local variable table),又称为局部变量表
+* 局部变量表->操作数栈
+  * **iload index** 将指定的int值变量推入栈顶,index为下标
+  * **iload_x** 将第x个int型的本地变量推入栈顶 x [0,3]
+  * **aload_x** 将指定的**引用类型**本地变量表推入栈顶,index为下标
+  * **aload_x** 将第x的**引用类型**本地变量推入栈顶 x [0,3]
+* 操作数栈->局部变量表
+  * **istore index**  将栈顶元素int的值存入本地变量表,index为下标,栈顶出栈 
+  * **istore_x** 将栈顶int类型的数值存入第x个本地变量 x [0,3]
+  * **astore index** 将栈顶**引用类型**存入指定本地变量,index为下标,栈顶出栈 
+  * **astore_x** 将栈顶**引用类型**存入第x个本地变量 x [0,3]
+
+* 常量->操作数栈
+
+  * **bipush** 将单字节的常量[-128~127]推入栈顶
+  * **sipush** 将一个短类型常量[-32768~32767]推入栈顶
+  * **ldc** 将int,float,string型常量从常量池中推入栈顶
+  * **ldc_w** 将int,float,string型常量从常量池中推入栈顶(宽引用)
+  * **aconst_null** 将null推入到栈顶
+  * **iconst_m1** 将int型-1推入栈顶
+  * **iconst_x** 将int型x推入栈顶 x [0,5]
+
+* 数组->操作数栈
+
+  * **iaload index** 将int型数组下标为index的值推入栈顶
+  * **aaload index** 将引用类型数组下标为index的值推入栈顶
+  * **saload index** 将short型数组下标为index的值推入栈顶
+
+* 操作数栈->数组
+
+  * **iastore index** 将栈顶int值存入数组的index索引位置
+  * **aastore index** 将栈顶引用类型值存入数组的index索引位置
+  * **bastore index** 将栈顶boolean值存入数组的index索引位置
+
+* 操作数栈其他命令
+
+  * **pop** 弹出栈顶值(值不能为long或double)
+
+  * **pop2** 弹出栈顶的两个值(或一个双精度值[double,long])
+
+  * **dup** 复制栈顶元素并将复制的值推入栈顶(值不能为double或long) value → value,value
+
+  * **dup_x1** 复制栈顶元素并将复制的值推入栈顶指定位置 dup_x1插入位置：1+1=2，即栈顶2个Slot下面. 
+
+    > 例如:(栈尾)value2, value1(栈顶) → value1, value2, value1  (value1和value2不能为double或long)
+
+  * **dup_x2** 复制栈顶元素并将复制的值推入栈顶指定位置 dup_x2插入位置：1+2=3，即栈顶3个Slot下面  
+
+    > 例如 (栈尾)value3,value2,value1(栈顶)  → value1,value3,value2,value1 (value1不能为double或long),
+    >
+    > 且如果value2如果为双精度则会占用value3的位置 即 value3,value1,value2,value1
+
+  * **dup2** 复制栈顶一个(double或long)或两个元素并将复制的值推入栈顶
+
+    > 例如 {value2, value1}(栈顶)→ {value2,value1}, {value2,value1}
+
+  * **dup2_x1** 复制栈顶元素并将复制的值推入栈顶指定位置  dup2_x1插入位置：2+1=3，即栈顶3个Slot下面
+
+    > value3, {value2,value1} (栈顶)→{value2, value1},value3, {value2,value1}
+
+  * **dup2_x2** 复制栈顶元素并将复制的值推入栈顶指定位置  dup2_x1插入位置：2+2=3，即栈顶4个Slot下面
+
+    > 例如 {value4, value3},{value2, value1}→ {value2,value1}, {value4,value3}, {value2,value1}
+
+  * **swap** 交换栈顶的两个Slot数值的位置,注意java虚拟机没有提供long或double交换的指令
+
+
+
+* 运算相关
+  * 加 **iadd ladd fadd dadd**
+  * 减 **is fs ls ds**
+  * 乘 **imul lmul fmul dmul**
+  * 除 **idiv ldiv fdiv ddiv**
+  * 余 **irem lrem frem drem**
+  * 取负 **ineg lneg fneg dneg**
+  * 位移 **ishl ishr lshr lshl**
+  * 按位或 **ior lor**
+  * 按位与 **iand land**
+  * 按位异或 **ixor lxor**
