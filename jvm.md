@@ -8,7 +8,6 @@
 * **java堆** 是java虚拟机中所管理的内存中的最大一块,是所有线程共享的一块内存区域,在虚拟机启动时创建.该内存区域唯一作用:存放对象实例,几乎所有的对象实例都在这里分配内存.**(但随着JIT编译器的发展与逃逸分析技术的成熟,栈上分配,标量替换优化技术会导致一些微妙变化)** java堆是垃圾收集器管理的主要区域.因此也被成为GC堆.从内存回收的角度来看,由于现在收集器基本采用分带收集算法,所以java堆中还可以细分为新生代,老年代,再细一点的有Eden空间 From Survivor空间 To Survivor空间等.从内存分配角度来看,线程共享的java堆中可能划分为多个线程私有的分配缓冲区(Thread Local Allocation Buffer TLAB)
 * **方法区** 与堆一样是各个线程共享的内存区域,它用于存储已经被虚拟机加载的类的信息,常量,静态变量,即时编译器编译后的代码等数据.根据虚拟机规范,当方法区无法满足内存分配需求时,将OutOfMemoryError异常
 * **运行时常量区** 是**方法区的**一部分,class文件除了有类的版本,字段,方法,接口等描述信息外,还有常量池(Constant Pool Table),用来存放编译期生成各种字面量和符号引用,这部分在类加载后将在方法区的常量池中存放.java虚拟机对class文件的每一部分(包含常量池)的格式都有严格的规定
-
 * **-XX:+/-UseTLAB**设置是否使用TLAB模式分配(每个线程在java堆中预先分配一小块内存,如果线程要分配内存就在自己所在TLAB上分配)
 * **对象头** 包含两部分:一部分用于储存自身的运行时数据,如HashCode,GC分代年龄,锁状态标志,线程持有锁,偏向线程ID,偏向时间戳这部分数据的长度在32位和64位虚拟机中分别为32bit和64bit(称为Mark Word),对象需要存储的运行时的数据很多一般都超过32位或64位,因此Mark Word被设计成一个非固定的数据结构以便于在极小的空间存储尽量多的信息.另一部分是类型指针,即对象指向它的类元数据的指针,虚拟机通过这个指针来确定这个对象是那个类的实例
 * **-Xms20m**最小堆内存
@@ -25,7 +24,7 @@
 * **-XX:MaxDirectMemorySize=100m** 指定DirectByteBuffer所能分配的空间,如果未设置 会被jvm默认为最大堆内存,一般在NIO中等使用
 * **-XX:+PrintGCDetails** 收集GC日志
 * **-verbose:gc** 收集GC日志 与上面类似
-* **-XX:PretenureSizeThreshold** 令大于这个设置值的对象直接在老年代分配.这样做的目的避免在Eden区以及两个Survivor区之间发生大量的内存复制 **该值只对Serial与ParNew两种收集器有效** Parallel Scavenge收集器不认识该参数
+* **-XX:PretenureSizeThreshold** 令对象大小大于该值的对象直接在老年代分配.这样做的目的避免在Eden区以及两个Survivor区之间发生大量的内存复制 **该值只对Serial与ParNew两种收集器有效** Parallel Scavenge收集器不认识该参数
 * **-XX:SurvivorRatio=8** 堆中Eden与Survivor比例值
 * **-XX:+PrintGCApplicationStoppedTime** 打印GC手机停顿时间
 * **-XX:+PrintGCDateStamps** 打印GC收集时间
@@ -42,16 +41,18 @@
 * **-XX:CounterHalfLifeTime** 设置半衰减周期的时间 单位为秒
 * **-XX:MetaspaceSize=256m** 指Metaspace扩容时触发FullGC的初始化阀值,也是最小阀值
 * 
-![](https://i.imgur.com/sUrYLSP.png)
+  ![](https://i.imgur.com/sUrYLSP.png)
 * **-XX:-BackgroundCompilation**,如果上述编译达到条件,代码编译器未编译完成之前,都仍按照解释方式继续执行,而编译动作会在后台的编译线程中执行,设置该参数后将禁用后台编译.即一旦达到JIT编译条件,执行线程会向虚拟机提交编译请求后将会一直等待,直到编译完成后,开始执行编译器输出的本地代码
 * **-XX:+PrintCompilation** 开启虚拟机在即时编译时,将编译为本地代码的方法打印出来 "%"为回边计数器触发OSR的编译
 * **-XX:+PrintInlining** 输出方法内联信息 貌似需要开启 **-XX:+UnlockDiagnosticVMOptions** 参数才行
 * **XX:CMSWaitDuration=2000** JVM中一个线程定时扫描old区,扫描间隔时间2s
 * **XX:CMSInitiatingOccupancyFraction=75** (老年代使用率阀值)如果发现old区占比超过75%(CMS下默认是68%)会触发cms gc
+* **-XX:PrintGCDetails** 打印GC垃圾收集日志信息
+* **-XX:+DoEscapeAnalysis** 开启逃逸分析 1.8默认开启
 ####堆详解
 
 * **Minor GC** 新生代GC 比较频繁
-* **Major GC(Full GC) 老年代GC 出现Major GC时至少进行一次Minor GC(非绝对 Parallel Scavenge收集器会忽略),一般Major GC比Minor GC满10倍以上
+* **Major GC**(Full GC) 老年代GC 出现Major GC时至少进行一次Minor GC(非绝对 Parallel Scavenge收集器会忽略),一般Major GC比Minor GC满10倍以上
 * 在绝大多数情况下对象会在新生代Eden区中分配,当Eden区没有足够的空间进行分配时,虚拟机将发起一次Minor GC
 * 虚拟机给每个对象定义了一个"age"计数器,如果对象生成在Eden区,经过Minor GC后扔存活,并且Survivor区能够容纳下,将会被移入Survivor区并且年龄加1,每经过一次Minor GC 年龄都会增加一岁,当增加到一定年龄后会被移入老年代(默认阀值是15,可通过设置**-XX:MaxTenuringThreshold=18**设置阀值)
 * **PerNew** 收集器采用的是复制算法,该算法建立在绝大部分对象都是朝闻夕死的特性上,如果对象过多把这些对象复制到Survivor上 GC时间会比较长,而且一般空间比例Eden:Survivor为8:1
@@ -76,21 +77,21 @@
   10. **-gcpermcapacity** 输出永久代使用的最大,最小空间
   11. **-compiler** 输出JIT编译器编译过的方法,耗时等信息
   12. **-printcompiklation** 输出已经被JIT编译的方法
-  
+
    总结:关于-gc 参数说明 
 
-	* S0 S1代表新生代Survivor1 Survivor2区已使用的的百分比 
-	* E 代表新生代Eden区 
-	* O 代表老年代
-	* P 永久代(Permanent) 
-	* YGC 程序启动后发生的Minor GC次数 
-	* YGCT Minor GC总耗时时间 
-	* FGC 程序启动后总 GC次数 
-	* FGCT Full GC总耗时时间 
-	* GCT 所有GC总耗时时间
-	* MC  Metaspace Capacity 
-	* MU  Metaspace Used
-  
+  * S0 S1代表新生代Survivor1 Survivor2区已使用的的百分比 
+  * E 代表新生代Eden区 
+  * O 代表老年代
+  * P 永久代(Permanent) 
+  * YGC 程序启动后发生的Minor GC次数 
+  * YGCT Minor GC总耗时时间 
+  * FGC 程序启动后总 GC次数 
+  * FGCT Full GC总耗时时间 
+  * GCT 所有GC总耗时时间
+  * MC  Metaspace Capacity 
+  * MU  Metaspace Used
+
 * **jinfo** Configuration Info for Java 显示虚拟机配置信息 jinfo [option] pid
 
   * ** 查询虚拟机参数 jinfo -flag CMSInitiatingOccupancyFranction 144
@@ -99,9 +100,9 @@
 * 
 * **jhat** JVM Heap Dump Browser 用于分析heapdump文件,它会建立一个Http服务器,让用户在浏览器上查看分析结果
 * **jstack** Stack Trace for Java 显示虚拟机的线程快照
-* jmap -dump:format=b,file=*.dump [pid] 导出dump文件
-* jmap -dump:format=b,file=*.hprof [pid]
-* ps -p pid -o etime 查看JVM运行的总时间
+* `jmap -dump:format=b,file=*.dump [pid]` 导出dump文件
+* `jmap -dump:format=b,file=*.hprof [pid]`
+* `ps -p pid -o etime` 查看JVM运行的总时间
 
 ####java类文件属性
 
@@ -131,7 +132,7 @@ d) 本地方法栈中JNI（Native方法）引用的对象;
 
 * 虚拟机运行字节码方式
 
-  1. **解释执行**.条将字节码翻译成机器码并执行
+  1. **解释执行**.将字节码翻译成机器码并执行
 
   2. **即时编译**(Just-In-Time compilation)JIT.将一个方法中包含的所有字节码编译成机器码后再执行
 
@@ -141,7 +142,7 @@ d) 本地方法栈中JNI（Native方法）引用的对象;
 
   2. **C2**.又称为Server编译器,优化手段复杂,编译时间长,代码执行效率高
 
-  3. **Graal**.java10引入的实验性即时编译器
+  3. **Graal**.java10 引入的实验性即时编译器
 
 ##### 第三章
 
@@ -178,8 +179,9 @@ d) 本地方法栈中JNI（Native方法）引用的对象;
   * **iload index** 将指定的int值变量推入栈顶,index为下标
   * **iload_x** 将第x个int型的本地变量推入栈顶 x [0,3]
   * **aload_x** 将指定的**引用类型**本地变量表推入栈顶,index为下标
+  * **aload_0** 在静态方法中 代表方法的第一个参数,在非静态方法中代表this
   * **aload_x** 将第x的**引用类型**本地变量推入栈顶 x [0,3]
-* 操作数栈->局部变量表
+  * 操作数栈->局部变量表
   * **istore index**  将栈顶元素int的值存入本地变量表,index为下标,栈顶出栈 
   * **istore_x** 将栈顶int类型的数值存入第x个本地变量 x [0,3]
   * **astore index** 将栈顶**引用类型**存入指定本地变量,index为下标,栈顶出栈 
@@ -239,9 +241,16 @@ d) 本地方法栈中JNI（Native方法）引用的对象;
 
   * **swap** 交换栈顶的两个Slot数值的位置,注意java虚拟机没有提供long或double交换的指令
 
-
+  * **getstatic** 静态字段访问指令
+  * **putstatic ** 静态字段赋值指令
+  * **getfield ** 成员变量访问指令
+  * **putfield** 成员变量赋值指令
+  * **goto** 无条件跳转
+  * **tableswitch** 条件跳转(针对密集的case)
+  * **lookupswitch** 条件跳转(针对稀疏的case)
 
 * 运算相关
+
   * 加 **iadd ladd fadd dadd**
   * 减 **is fs ls ds**
   * 乘 **imul lmul fmul dmul**
@@ -252,3 +261,76 @@ d) 本地方法栈中JNI（Native方法）引用的对象;
   * 按位或 **ior lor**
   * 按位与 **iand land**
   * 按位异或 **ixor lxor**
+
+  
+
+##### 垃圾回收
+
+* YGC过程
+
+  * 新生代默认比例 Eden : From Survivor :  To Survivor = 8 : 1 : 1
+
+    > new 出来的对象会被放入Eden区,Eden区满后会进行 Minor GC
+    >
+    > 存活下来的对象会被复制到 From Survivor区 同时将对象的age(复制次数)加 1
+    >
+    > 当下一次Eden区满后进行Minor GC会将 Eden和From Survivor存活的对象复制到 To Survivor区 同时将age(复制次数)加1
+    >
+    > 如果对象age=15时(由参数**-XX:+MaxTenuringThreshold**控制),则对象进入老年代.
+    >
+    > 并不是对象age一定到15后才会被进入老年代, 如果Survivor区各个年龄段对象大小比例 
+    >
+    > 之和大于某个阀值**-XX:TargetSurvivorRatio**(默认50%),例如
+    >
+    > age1的对象占用10%
+    >
+    > age2的对象占用33%
+    >
+    > age3的对象占用20%
+    >
+    > age4的对象占用34%
+    >
+    > 则从小到大依次累计相加,直到相加的和大于50%则将当前累计相加的age最大值及以上的对象复制到老年代
+    >
+    > 即 age1+age2 + age3 > 50% age3 age4都进入老年代
+    >
+    > 如果new出来的对象在Eden区放不下 会直接在老年代分配
+    >
+    > 如果To Survivor区被填满后,会将所有对象移到老年代
+
+##### 垃圾收集器
+
+> `java -XX:+PrintCommandLineFlags -version` 查看系统默认的收集器
+
+* **Serial ** + **Serial Old**  串行收集器,收集新生代和老年代垃圾,在其他收集器无效时,作为兜底策略使用
+* **Parallel Scavenge**  +  **Parallel Old** 并行收集器,收集新声嗲和老年代垃圾
+* **ParNew** 年轻代收集器(并行收集器类似)
+* **CMS** 并发标记清除收集器,是老年代收集器
+* **G1** 1.7出现的新收集器
+
+  * `-XX:G1NewSizePercent` 新生代最小值，默认值5%,G1会在5%~60%之间动态分配
+  * `-XX:G1MaxNewSizePercent` 新生代最大值，默认值60%
+
+  * `-XX:MaxGCPauseMillis` 每次垃圾回收停顿时间 默认200ms,不固定
+  * `-XX:InitiatingHeapOccupancyPercent` 堆内存占用百分比 默认 45,表示老年代占用整个堆低于45%时,不做垃圾回收
+  * `-XX:G1HeapRegionSize` 堆内存每个区域的大小 1M~32M之间,必须是2的幂次方,默认将堆划分为2048份区域
+* `-XX:+UseSerialGC` 使用串行GC,一般在client模式下默认的 Serial+Serial Old
+* `-XX:+UseParNewGC` 1.8版本已经废弃,ParNew+Serial Old
+* `-XX:+UseConcMarkSweepGC` ParNew+CMS+Serial Old
+* `-XX:+UseParallelGC` server模式下默认的,Parallel Scavenge+Serial Old(PS Mark Sweep)
+* `-XX:+UseParallelOldGC` Parallel Scavenge+Parallel Old
+* `-XX:+UseG1GC` G1+G1
+* `-XX:GCTimeRatio` GC与应用的耗费时间比例 G1默认9 CMS默认99
+* `-XX:PretenureSizeThreshold` 对象分配字节大小超过该阀值会直接在老年代分配
+* `-XX:NewRatio` 年轻代和老年代的比例 默认1:2 ,在JDK1.8时 默认开启`-XX:+UseAdaptiveSizePolicy` 动态调整老年代和新生代比例,因此会使其失效
+
+![](D:\learning\2824581e7c94a3a94b2b0abb1d348974.jpg)
+
+#### 性能优化
+
+##### 引用类型
+
+* `强引用(Strong Reference)` 被强引用关联的对象永远不会被垃圾收集器回收掉
+* `软引用(Soft Reference)` 软引用关联的对象,只有当系统内存不足将要发生内存溢出时,才会回收软引用的对象
+* `弱引用(Weak Reference)` 被弱引用关联的对象,只要发生垃圾收集事件,就会被回收
+* `虚引用(Phantom Reference)` 被虚引用关联的对象,唯一的作用就是能在这个对象被回收器回收时收到一个系统通知
