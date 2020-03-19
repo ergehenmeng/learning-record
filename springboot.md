@@ -33,10 +33,9 @@
   * `BeanPostProcessor#postProcessBeforeInitialization` 实例化前操作 
     * `ApplicationContextAwareProcessor`等上下文Aware接口的回调
     * `InitDestroyAnnotationBeanPostProcessor` 中调用`@PostConstruct`方法
-    * 
   * `InitializingBean#afterPropertiesSet` 接口方法调用
   * 自定义init方法调用
-
+  
 * `DefaultListableBeanFactory#preInstantiateSingletons` 初始化所有的单例bean
 
   * `SmartInitializingSingleton#afterSingletonsInstantiated` 完全初始化后调用 
