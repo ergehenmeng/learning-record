@@ -20,9 +20,20 @@ QosProtocolWrapper(统计拦截次数)-ProtocolListenerWrapper(导出监听器)-
 
 > 消费端 Protocol 引用
 
-ProtocolListenerWrapper(导出监听器)-ProtocolFilterWrapper(包装拦截器)-QosProtocolWrapper(统计拦截次数)-RegistryProtocol(注册中心)-DubboProtocol(dubbo协议注册中心导出)
+```mermaid
+graph LR
+A["QosProtocolWrapper"]
+B["ProtocolListenerWrapper"]
+C["ProtocolFilterWrapper"]
+D["RegistryProtocol"]
+E["DubboProtocol"]
+A-->B
+B-->C
+C-->D
+D-->E
+```
 
 
 
 
-	
+​	

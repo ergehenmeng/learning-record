@@ -13,6 +13,7 @@
       //如果当前添加的元素时优先级最高的,则唤醒等待的线程
       if (q.peek() == e) {
         leader = null;
+        //如果队列中没有元素的情况下,已经有线程在take()等待结果,此处没有唤醒的话,等待线程将永远阻塞
         available.signal();
       }
       return true;

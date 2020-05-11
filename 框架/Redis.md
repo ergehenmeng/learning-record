@@ -2,8 +2,10 @@
 
 #### 集成步骤
 
-* `slaveof {ip} {port}` 从配置文件中添加主节点的ip和端口即可
-* `slaveof no one` 在从节点执行该命令即可断开主从模式
+```properties
+slaveof {ip} {port} 从配置文件中添加主节点的ip和端口即可
+slaveof no one 在从节点执行该命令即可断开主从模式
+```
 
 #### 主从复制原理
 
@@ -49,6 +51,27 @@
 
 ## 哨兵模式
 
+#### 集成步骤
+
+* 先配置主从模式
+
+* 配置哨兵节点
+
+```properties
+sentinel monitor {masterName} {masterIp} {masterPort} {quorum} 配置哨兵节点的监控信息
+`masterName` 主节点名称
+`masterIp` 主节点ip
+`masterPort` 主节点端口
+`quorum` 判断主节点客观下线的哨兵数的阀值(建议哨兵数/2+1)
+```
+
+* 启动哨兵节点
+
+```shell
+./redis-sentinel redis.conf
+./redis-server redis.conf --sentinel 两则都可以 redis.conf中配置的是哨兵节点信息
+```
+
 #### 哨兵节点定时任务(3个)
 
 * 通过向主节点发送`info`命令获取最新的主从结构
@@ -74,13 +97,6 @@
 * 将已下线的主节点设置为新的主节点的从节点,当其重新上线后,会成为新的主节点的从节点
 
 #### 配置说明
-
-`sentinel monitor {masterName} {masterIp} {masterPort} {quorum}` 配置哨兵节点的监控信息
-
-* `masterName` 主节点名称
-* `masterIp` 主节点ip
-* `masterPort` 主节点端口
-* `quorum` 判断主节点客观下线的哨兵数的阀值(建议哨兵数/2+1)
 
 `sentinel down-after-milliseconds {masterName} {time}` 主观判断超时时间
 
@@ -236,3 +252,13 @@
 #### 解决方案
 
 * 将缓存的过期时间进行分散
+
+## RESP协议
+
+> 结束符为回车换行符 `\r\n`
+
+* 单行字符串 第一个字符为`+`
+* 错误信息 第一个字符为`-`
+* 整数数字 第一个字符为`:` ,后面跟整数字符串
+* 多行字符串,第一个字符为`$` 后面跟字符串长度
+* 数组,第一个字符为`*` ,后面跟数组长度
