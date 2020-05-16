@@ -23,19 +23,14 @@
 ## SpringBean大致生命周期
 
 * `DefaultListableBeanFactory#registerBeanDefinition` 注册BeanDefinition
-
 * `DefaultListableBeanFactory#getMergedBeanDefinition` 合并BeanDefinition (GenericBeanDefinition -> RootBeanDefinition)
-
 * `DefaultListableBeanFactory#resolveBeforeInstantiation` 实例化之前操作 
 
   * (`InstantiationAwareBeanPostProcessor#postProcessBeforeInstantiation`) 可以手动实例化bean(bean的生命周期不会继续)
-
 * `DefaultListableBeanFactory#createBeanInstance` 实例化阶段 (构造方法,反射,cglib)
-
 * `DefaultListableBeanFactory#populateBean` 实例化后阶段(属性填充)
 
   * `InstantiationAwareBeanPostProcessor#postProcessProperties` 对属性进行修改
-
 * `DefaultListableBeanFactory#initializeBean` 初始化前中后
 
   * `Aware` 接口回调
@@ -44,36 +39,21 @@
     * `InitDestroyAnnotationBeanPostProcessor` 中调用`@PostConstruct`方法
   * `InitializingBean#afterPropertiesSet` 接口方法调用
   * 自定义init方法调用
-  
 * `DefaultListableBeanFactory#preInstantiateSingletons` 初始化所有的单例bean
 
   * `SmartInitializingSingleton#afterSingletonsInstantiated` 完全初始化后调用 
-
 * `DefaultListableBeanFactory#destoryBean` 销毁前中(单个Bean)
 
   * `DestructionAwareBeanPostProcessor#postProcessBeforeDestruction` 销毁前操作 `@PreDestroy`
   * `DisposableBean#destroy` 接口方法
   * 自定义的销毁方法
 
-  
 
-  
+## 常用注解
 
-  
+#### @Import使用方式
 
-  
+* 直接导入`Bean` 或者`Configuration`类
 
-  
-
-  
-
-  
-
-  
-
-  
-
-
-
-
-
+* 配合自定义的`ImportSelector`使用
+* 配合`ImportBeanDefinitionRegistrar` 使用

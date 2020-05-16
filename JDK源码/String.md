@@ -63,7 +63,7 @@ System.out.println(a == b);//true
   * 不存在,在常量池创建常量
 
 ```java
-//常量池中创建 aa
+//常量池中创建 aa bb
 String a = new String("aa") + new String("bb");
 //在创建对象b
 String b = new String("a") + new String("a");
@@ -75,7 +75,7 @@ System.out.println(b == b.intern()); // false
 #### 双引号与new String相加
 
 * 创建两个对象,一个是new String的对象,一个是相加后的对象
-* 判断双引号常量与new String的字面量是否在常量池中存在
+* 判断双引号常量与new String相加的字面量是否在常量池中存在
   * 存在, 不做任何操作
   * 不存在,在常量池中创建常量
 
@@ -112,4 +112,6 @@ String a2 = new String("A") + new String("A");
 String b = new String("A") + new String("A");
 b.intern();//在常量池上创建引用
 ```
+
+#### 字符串常量池、Class常量池、运行时常量池
 

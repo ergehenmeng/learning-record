@@ -33,10 +33,34 @@
 
 > 为了代替cms收集器而创建的,cms在长时间持续运行时会产生很多问题(????)
 
-| Young             | Tenured      | Jvm options                                   |
-| ----------------- | ------------ | --------------------------------------------- |
-| Serial            | Serial       | -XX:+UseSerialGC                              |
-| Parallel Scavenge | Parallel Old | -XX:+UsePrarallelGC  -XX:+UseParallelOldGC    |
-| Parallel New      | CMS          | -XX:+UseParallelNewGC -XX:+UseConcMarkSweepGC |
-| G1                | G1           | -XX:+UseG1GC                                  |
+| Young                                 | Tenured      | Jvm options                                   |
+| ------------------------------------- | ------------ | --------------------------------------------- |
+| Serial                                | Serial       | -XX:+UseSerialGC                              |
+| Parallel Scavenge(可以设置gc停顿时间) | Parallel Old | -XX:+UsePrarallelGC  -XX:+UseParallelOldGC    |
+| Parallel New                          | CMS          | -XX:+UseParallelNewGC -XX:+UseConcMarkSweepGC |
+| G1                                    | G1           | -XX:+UseG1GC                                  |
+
+#### 类加载过程
+
+##### 加载
+
+> 将.class文件加载到内存中
+
+##### 链接
+
+* 验证
+
+  > 验证加载的字节码符合虚拟机规范
+
+* 准备
+
+  > 为**类变量** 分配内存,初始赋值(根据不同变量类型设置初始值,final类型则直接赋值)
+
+* 解析
+
+  > 将常量池中的符号引用替换为实际引用
+
+##### 初始化
+
+> 类变量的初始化(只)
 

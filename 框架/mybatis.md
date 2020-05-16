@@ -584,3 +584,11 @@ private void handleRowValuesForNestedResultMap(ResultSetWrapper rsw, ResultMap r
 #### SqlSourceBuilder
 
 > 解析#{},并将其替换为?
+
+#### 四大对象可以实现插件化
+
+* `ResultSetHandler`
+* `ParameterHandler`
+* `StatementHandler`
+* `Executor`
+
