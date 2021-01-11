@@ -141,7 +141,7 @@
     }
   
     // 向后查找,虽然要放在staleSlot位置,但是前面也仅仅判断该位置为null(这个位置可能是其他元素先占的,只是后面被清除了而已)
-    //因此需要向后查找,看看是否已经真的存在当前key的元素
+    // 因此需要向后查找,看看是否已经真的存在当前key的元素
     for (int i = nextIndex(staleSlot, len); (e = tab[i]) != null; i = nextIndex(i, len)) {
       ThreadLocal<?> k = e.get();
       //发现后面确实存在
@@ -150,10 +150,9 @@
         //调换位置 注意tab[staleSlot]是个key为null的不为空的Entry
         tab[i] = tab[staleSlot];
         tab[staleSlot] = e;
-				//此处表示在staleSlot节点前并没发现key=null的Entry节点存在,且staleSlot~i之间也没有发现key=null的Entry节点
+		//此处表示在staleSlot节点前并没发现key=null的Entry节点存在,且staleSlot~i之间也没有发现key=null的Entry节点(因为有的话,下面逻辑会导致slotToExpunge值变更)
         if (slotToExpunge == staleSlot) {
           //目前也只是遍历(0-slotToExpunge[都不为空])
-          //甚至staleSlot-i之间都可能存在key=null的Entry存在,
           //同样i-len之间依旧可能存在key=null的Entry存在
            slotToExpunge = i;
         }
@@ -168,7 +167,7 @@
 	//自始至终没找到后面与之相同key
     tab[staleSlot].value = null;
     tab[staleSlot] = new Entry(key, value);
-//但是在遍历的过程中找到了key=null的Entry节点,清除操作
+	//但是在遍历的过程中找到了key=null的Entry节点,清除操作
     if (slotToExpunge != staleSlot)
       cleanSomeSlots(expungeStaleEntry(slotToExpunge), len);
   }
@@ -222,7 +221,7 @@ private void remove(ThreadLocal<?> key) {
 
 
 
-#### 内存溢出问题(个人总结)
+#### 内存溢出问题(个人看法)
 
 > 由于`ThreadLocalMap`中Entry的key是弱引用,而key=ThreadLocal,在一般情况下 我们定义一个ThreadLocal都是staitc final的(官方也这么建议),因此key=null的可能性几乎为零,弱引用本身的作用无法提现出来,key和value都是强引用
 >

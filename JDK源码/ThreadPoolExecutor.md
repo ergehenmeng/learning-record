@@ -137,7 +137,7 @@ public void execute(Runnable command) {
         }
       }
     } finally {
-      //线程并没有启动成功,可能是任务执行过程中抛异常了,进行失败处理
+      // workerAdded = false或者 t==null(默认情况下不会出现) 也就是说线程池可能已经关闭了
       if (! workerStarted)
         addWorkerFailed(w);
     }
@@ -258,7 +258,7 @@ final void runWorker(Worker w) {
 
 //没有任务或者任务异常了,需要退出工作线程
   private void processWorkerExit(Worker w, boolean completedAbruptly) {
-    //表示因为任务执行异常才退出的
+    //表示因为任务执行异常导致的退出
     if (completedAbruptly) 
       decrementWorkerCount();
 
@@ -285,7 +285,7 @@ final void runWorker(Worker w) {
           //相当于整个Thread.run()方法执行完毕,系统会自动退出该线程
           return; 
       }
-      //表示是因为任务执行异常导致的退出,重新添加个空的任务
+      //表示是因为任务执行异常导致的退出,重新添加个空的任务 或者说 线程池在shutdown状态,但任务没有执行完,重启一个线程继续执行剩余的任务
       addWorker(null, false);
     }
   }
