@@ -18,13 +18,13 @@ QosProtocolWrapper(统计拦截次数)-ProtocolListenerWrapper(导出监听器)-
 
 QosProtocolWrapper(统计拦截次数)-ProtocolListenerWrapper(导出监听器)--ProtocolFilterWrapper(包装拦截器)-RegistryProtocol(注册中心)-DubboProtocol(dubbo协议注册中心导出)
 
-> 消费端 Protocol 引用
+> 消费端 Protocol 引用 (前三个顺序可以不固定)
 
 ```mermaid
 graph LR
-A["QosProtocolWrapper"]
+A["ProtocolFilterWrapper"]
 B["ProtocolListenerWrapper"]
-C["ProtocolFilterWrapper"]
+C["QosProtocolWrapper"]
 D["RegistryProtocol"]
 E["DubboProtocol"]
 A-->B
